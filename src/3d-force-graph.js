@@ -123,7 +123,7 @@ export default SWC.createComponent({
 
 		// Setup scene
 		const scene = new THREE.Scene();
-		scene.background = new THREE.Color(0x0000A);
+		scene.background = new THREE.Color(0xffffff);
 		scene.add(state.graphScene = new THREE.Group());
 
 		// Add lights
@@ -217,17 +217,18 @@ export default SWC.createComponent({
 		});
 
 		//const lineMaterial = new THREE.LineBasicMaterial({ color: state.lineColor, transparent: true, opacity: state.lineOpacity });
-		const arrowMaterial = new THREE.MeshLambertMaterial({ color: state.lineColor, transparent: true, opacity: state.lineOpacity });
 
 		state.graphData.links.forEach(link => {
+			const arrowMaterial = new THREE.MeshLambertMaterial({ color: link.color, transparent: true, opacity: 1.0 });
+
 			const geometry = new THREE.BufferGeometry();
 			geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(2 * 3), 3));
-			const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: state.lineColor, transparent: true, opacity: link.opacity || state.lineOpacity }));
+			const line = new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: link.color, transparent: true, opacity: 1.0 }));
 
 			line.renderOrder = 10; // Prevent visual glitches of dark lines on top of spheres by rendering them last
 
 			if (state.includeArrows) {
-				const arrow = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, state.lineColor);
+				const arrow = new THREE.ArrowHelper(new THREE.Vector3(), new THREE.Vector3(), 0, link.color);
 				arrow.cone.material = arrowMaterial;
 				//arrow.line.material = lineMaterial;
 				state.graphScene.add(link.__arrow = arrow);
@@ -329,7 +330,7 @@ export default SWC.createComponent({
 					arrow.position.copy(boundingSphere.center)
 
 					arrow.setDirection(new THREE.Vector3(0,0,0).copy(end).sub(start).normalize());
-					arrow.setLength(0, 4, 2);
+					arrow.setLength(0, 5, 4);
 				}
 
 			});
