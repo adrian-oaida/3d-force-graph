@@ -60,44 +60,14 @@ export default SWC.createComponent({
 		state.infoElem.textContent = '';
 
 		// Setup tooltip
-		const toolTipElem = document.createElement('div');
-		toolTipElem.classList.add('graph-tooltip');
-		domNode.appendChild(toolTipElem);
 
 		// Capture mouse coords on move
 		const raycaster = new THREE.Raycaster();
 		const mousePos = new THREE.Vector2();
 		mousePos.x = -2; // Initialize off canvas
 		mousePos.y = -2;
+
 		domNode.addEventListener("mousemove", ev => {
-			// update the mouse pos
-			const offset = getOffset(domNode),
-				relPos = {
-					x: ev.pageX - offset.left,
-					y: ev.pageY - offset.top
-				};
-			mousePos.x = (relPos.x / state.width) * 2 - 1;
-			mousePos.y = -(relPos.y / state.height) * 2 + 1;
-
-			// Capture active object
-			raycaster.setFromCamera(mousePos, state.camera);
-			mousePos.intersect = raycaster.intersectObjects(state.graphScene.children)
-				.filter(o => o.object) // Check only objects with labels
-				.shift(); // first item
-
-			// Move tooltip
-			toolTipElem.style.top = (relPos.y - 15) + 'px';
-			toolTipElem.style.left = (relPos.x + 15) + 'px';
-
-			if (state.highlightItems) {
-				resetOpacity();
-				if (mousePos.intersect) {
-					mousePos.intersect.object.material.opacity = 0.9;
-					domNode.style.cursor = 'pointer';
-				} else {
-					domNode.style.cursor = 'default';
-				}
-			}
 
 			if (state.onMouseOver) {
 				state.onMouseOver.call(state, mousePos.intersect);
@@ -112,8 +82,42 @@ export default SWC.createComponent({
 		}, false);
 
 		domNode.addEventListener("click", ev => {
-			if (state.onClick) {
-				state.onClick.call(state, mousePos.intersect);
+			console.log(ev);
+			if(ev.metaKey){
+				var elements = domNode.getElementsByClassName('graph-tooltip');
+				for(var i = 0; i < elements.length; i++){
+					 domNode.removeChild(elements[i]);
+				}
+			}else{
+				const offset = getOffset(domNode),
+					relPos = {
+						x: ev.pageX - offset.left,
+						y: ev.pageY - offset.top
+					};
+				mousePos.x = (relPos.x / state.width) * 2 - 1;
+				mousePos.y = -(relPos.y / state.height) * 2 + 1;
+
+				// Capture active object
+				raycaster.setFromCamera(mousePos, state.camera);
+				mousePos.intersect = raycaster.intersectObjects(state.graphScene.children)
+					.filter(o => o.object) // Check only objects with labels
+					.shift(); // first item
+
+				const toolTipElem = document.createElement('div');
+				toolTipElem.classList.add('graph-tooltip');
+				domNode.appendChild(toolTipElem);
+
+				toolTipElem.style.top = (relPos.y - 15) + 'px';
+				toolTipElem.style.left = (relPos.x + 15) + 'px';
+				toolTipElem.textContent = mousePos.intersect.object.name;
+			}
+
+
+			function getOffset(el) {
+				const rect = el.getBoundingClientRect(),
+					scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+					scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+				return { top: rect.top + scrollTop, left: rect.left + scrollLeft };
 			}
 		});
 
@@ -149,8 +153,8 @@ export default SWC.createComponent({
 			if(state.onFrame) state.onFrame();
 
 			// Update tooltip
-			toolTipElem.textContent = mousePos.intersect ?
-											mousePos.intersect.object.name : '';
+			// toolTipElem.textContent = mousePos.intersect ?
+			// 								mousePos.intersect.object.name : '';
 
 			// Frame cycle
 			tbControls.update();
